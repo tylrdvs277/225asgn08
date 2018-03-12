@@ -35,8 +35,8 @@ void processFile(FILE *in, Line *current, LongestLine *longest, int *occur, int 
     char lineData[MAX_LEN];
     char countChar[MAX_LEN];
     
-    longest.lineData = "\n";
-    longest.length = 0;
+    strcpy(longest->lineData, "\n");
+    longest->length = 0;
 
     *lines = 0;
     *occur = 0;
@@ -51,7 +51,6 @@ void processFile(FILE *in, Line *current, LongestLine *longest, int *occur, int 
         }
 
         wordNum = 0;
-        (*lines)++;
         strcpy(countChar, lineData);
         strip(countChar);
         word = strtok(countChar, " ");
@@ -64,13 +63,14 @@ void processFile(FILE *in, Line *current, LongestLine *longest, int *occur, int 
             wordNum++;
             word = strtok(NULL, " ");
         }
+        (*lines)++;
     }
 }
 
 
 void strip(char *chars) {
     while (*chars != '\0') {
-        if (!((*chars >= 'a' && *chars <= 'z' )||(*chars >= 'A' && *chars <= 'Z')))
+        if (*chars == '.' || *chars == ',' || *chars == '\n')
             *chars = ' ';
         chars++;
     }
@@ -89,7 +89,7 @@ void outputData(char **args, LongestLine *longest, int lines, int occurs, Line *
     printf("longest line: %s", longest->lineData);
     printf("num chars: %d\n", longest->length);
     printf("num lines: %d\n", lines);
-    printf("total occurences of word: %d\n", occurs);
+    printf("total occurrences of word: %d\n", occurs);
     for (i = 0; i < occurs; i++) {
         printf("line %d; word %d; %s", current->lineNum, current->wordNum, current->lineData);
         current = current->next;
