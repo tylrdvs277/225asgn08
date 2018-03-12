@@ -9,10 +9,11 @@
 int main(int argc, char *argv[]) {
     
     FILE *infile = NULL;
-    Line head;
+    Line *head = NULL;
     LongestLine longest;
-    int numOccur;
-    int lineNum;
+    int numOccur = 0;
+    int lineNum = 0;
+    longest.length = 0;
 
     if (argc != 3) { 
         printf("myGrep: improper number of arguments\nUsage: ./a.out <filename> <word>\n");
@@ -20,77 +21,66 @@ int main(int argc, char *argv[]) {
     }
 
     infile = fopen(argv[1], "r");
-    if (infile == NULL) {
+    if (!infile) {
         printf("Unable to open file: %s\n", argv[1]);
         return 1;
     }
 
     processFile(infile, &head, &longest, &numOccur, &lineNum, argv[2]);
-    outputData(argv, &longest, lineNum, numOccur, &head);
+    outputData(argv, &longest, lineNum, numOccur, head);
     return 0;
 }
 
-void processFile(FILE *in, Line *current, LongestLine *longest, int *occur, int *lines, char *search) {
+void processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int *lineNum, char *search) {
     
     char lineData[MAX_LEN];
     char countChar[MAX_LEN];
-    
-    strcpy(longest->lineData, "\n");
-    longest->length = 0;
 
-    *lines = 0;
-    *occur = 0;
-    while(fgets(lineData, MAX_LEN, in) != NULL) {
+    while(fgets(lineData, MAX_LEN, in)) {
         int length = strlen(lineData);
         char *word = NULL;
-        int wordNum;
+        int wordNum = 0;
 
         if (length > longest->length) {
             longest->length = length;
             strcpy(longest->lineData, lineData);
         }
 
-        wordNum = 0;
         strcpy(countChar, lineData);
-        strip(countChar);
-        word = strtok(countChar, " ");
-        while (word != NULL) {
-            if (strcmp(word, search)== 0) {
+        word = strtok(countChar, " .,\n");
+        while (word) {
+            if (strcmp(word, search) == 0) {
+                Line *temp = (Line*)malloc(sizeof(Line)); 
+                if (!temp) {
+                    printf("Cannot allocate required memory");
+                    exit(1);
+                }
+                strcpy(temp->lineData, lineData);
+                temp->lineNum = *lineNum;
+                temp->wordNum = wordNum;
+                temp->next = NULL;
+                if (*occur == 0)
+                    *current = temp;
+                else {
+                    (*current)->next = temp;
+                    current = &((*current)->next);
+                }
                 (*occur)++;
-                addEntry(current, lineData, *lines, wordNum);
-                current = current->next;
             }
             wordNum++;
-            word = strtok(NULL, " ");
+            word = strtok(NULL, " .,\n");
         }
-        (*lines)++;
+        (*lineNum)++;
     }
-}
-
-
-void strip(char *chars) {
-    while (*chars != '\0') {
-        if (*chars == '.' || *chars == ',' || *chars == '\n')
-            *chars = ' ';
-        chars++;
-    }
-}
-
-void addEntry(Line *newEntry, char *line, int lineNum, int wordNum) {
-    strcpy(newEntry->lineData, line);
-    newEntry->lineNum = lineNum;
-    newEntry->wordNum = wordNum;
-    newEntry->next = (Line*)malloc(sizeof(Line));
 }
 
 void outputData(char **args, LongestLine *longest, int lines, int occurs, Line *current) {
-    int i;
     printf("%s %s %s\n", *args, *(args + 1), *(args + 2));
     printf("longest line: %s", longest->lineData);
     printf("num chars: %d\n", longest->length);
     printf("num lines: %d\n", lines);
     printf("total occurrences of word: %d\n", occurs);
-    for (i = 0; i < occurs; i++) {
+    while(current) {
         printf("line %d; word %d; %s", current->lineNum, current->wordNum, current->lineData);
         current = current->next;
     }
