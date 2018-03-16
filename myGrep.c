@@ -26,12 +26,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    processFile(infile, &head, &longest, &numOccur, &lineNum, argv[2]);
+    if (processFile(infile, &head, &longest, &numOccur, &lineNum, argv[2])) {
+        printf("Cannot allocate required memory\n");
+        return 1;
+    }
     outputData(argv, &longest, lineNum, numOccur, head);
     return 0;
 }
 
-void processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int *lineNum, char *search) {
+int processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int *lineNum, char *search) {
     
     char lineData[MAX_LEN];
     char countChar[MAX_LEN];
@@ -51,10 +54,7 @@ void processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int
         while (word) {
             if (strcmp(word, search) == 0) {
                 Line *temp = (Line*)malloc(sizeof(Line)); 
-                if (!temp) {
-                    printf("Cannot allocate required memory");
-                    exit(1);
-                }
+                if (!temp)  return 1;
                 strcpy(temp->lineData, lineData);
                 temp->lineNum = *lineNum;
                 temp->wordNum = wordNum;
@@ -72,6 +72,7 @@ void processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int
         }
         (*lineNum)++;
     }
+    return 0;
 }
 
 void outputData(char **args, LongestLine *longest, int lines, int occurs, Line *current) {

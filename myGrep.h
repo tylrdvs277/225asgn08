@@ -18,7 +18,7 @@ struct longestLine {
     int length;
 };
 
-void processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int *lines, char *search);
+int processFile(FILE *in, Line **current, LongestLine *longest, int *occur, int *lines, char *search);
 void outputData(char **args, LongestLine *longest, int lines, int occurs, Line *current); 
 
 #endif
